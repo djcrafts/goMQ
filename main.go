@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -10,18 +9,14 @@ import (
 //
 
 func main() {
-	cfg := &Config{ListenAddr: ":3000", Store: NewMemoryStore()}
+	cfg := &Config{
+		ListenAddr:        ":3000",
+		StoreProducerFunc: func() Storer { return NewMemoryStore() },
+	}
 	s, err := NewServer(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(s)
-
-	s.Store.Push([]byte("messageForQueue"))
-	data, err := s.Store.Fetch(1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(string(data))
+	s.Start()
 
 }

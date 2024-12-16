@@ -1,10 +1,13 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type Config struct {
-	ListenAddr string
-	Store      Storer
+	ListenAddr        string
+	StoreProducerFunc StoreProducerFunc
 }
 
 type Server struct {
@@ -20,5 +23,17 @@ func NewServer(cfg *Config) (*Server, error) {
 }
 
 func (s *Server) Start() {
-	http.ListenAndServe(s.ListenAddr, nil)
+	http.ListenAndServe(s.ListenAddr, s)
+}
+
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
+}
+
+func (s *Server) createTopic(name string) bool {
+	if _, ok := s.topics[name]; !ok {
+		s.topics[name] = s.StoreProducerFunc()
+		return true
+	}
+	return false
 }
